@@ -11,7 +11,6 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Counter Deep',
-      // ===== 步骤二：teal 种子色主题 =====
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
           seedColor: Colors.teal,
@@ -33,24 +32,58 @@ class CounterPage extends StatefulWidget {
 
 class _CounterPageState extends State<CounterPage> {
   int _counter = 0;
-  // ===== 步骤二：步长变量 =====
   int _step = 1;
+
+  static const String _tag = '[CounterPage]';
+
+  // ===== 步骤三：生命周期钩子日志 =====
+  @override
+  void initState() {
+    super.initState();
+    debugPrint('$_tag initState — 一次性初始化, _counter=$_counter, _step=$_step');
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    debugPrint('$_tag didChangeDependencies — 依赖变化（主题继承等）');
+  }
+
+  @override
+  void didUpdateWidget(covariant CounterPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    debugPrint('$_tag didUpdateWidget — 父组件重建传入新配置');
+  }
+
+  @override
+  void deactivate() {
+    super.deactivate();
+    debugPrint('$_tag deactivate — State 从树中暂时移除');
+  }
+
+  @override
+  void dispose() {
+    debugPrint('$_tag dispose — 销毁清理');
+    super.dispose();
+  }
 
   void _incrementCounter() {
     setState(() {
-      _counter += _step; // 每次加 _step
+      _counter += _step;
+      debugPrint('$_tag setState → _counter=$_counter');
     });
   }
 
   void _decrementCounter() {
     setState(() {
       _counter -= _step;
+      debugPrint('$_tag setState → _counter=$_counter');
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    // 使用 Theme.of(context) 取主题色（主题定制验证点）
+    debugPrint('$_tag build — 重建界面, _counter=$_counter, _step=$_step');
     final primary = Theme.of(context).colorScheme.primary;
 
     return Scaffold(
@@ -63,17 +96,35 @@ class _CounterPageState extends State<CounterPage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
+            // ===== 步骤三：资源图片 =====
+            Padding(
+              padding: const EdgeInsets.only(bottom: 24),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: Image.asset(
+                  'assets/images/logo.png',
+                  width: 120,
+                  height: 120,
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, __, ___) => Container(
+                    width: 120,
+                    height: 120,
+                    color: primary.withValues(alpha: 0.2),
+                    child: Icon(Icons.image, size: 48, color: primary),
+                  ),
+                ),
+              ),
+            ),
             const Text('You have pushed the button this many times:'),
             const SizedBox(height: 8),
             Text(
               '$_counter',
               style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                    color: primary, // 主题色驱动
+                    color: primary,
                     fontWeight: FontWeight.bold,
                   ),
             ),
             const SizedBox(height: 24),
-            // ===== 步骤二：步长选择 =====
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -83,7 +134,12 @@ class _CounterPageState extends State<CounterPage> {
                   ChoiceChip(
                     label: Text('+$s'),
                     selected: _step == s,
-                    onSelected: (_) => setState(() => _step = s),
+                    onSelected: (_) {
+                      setState(() {
+                        _step = s;
+                        debugPrint('$_tag step changed → $_step');
+                      });
+                    },
                   ),
                   const SizedBox(width: 8),
                 ],
